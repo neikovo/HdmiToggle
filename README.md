@@ -1,42 +1,40 @@
 # HdmiToggle
 
-Малко приложение за Windows 11, което спира и пуска картината към външния HDMI монитор с един клик.
+A tiny Windows 11 tray app that turns the picture to the external HDMI display off and on with one click.
 
-*A tiny Windows 11 tray app that turns the picture to the external HDMI display off and on with one click.*
+## Usage
 
-## Употреба
+Run `HdmiToggle.exe` — an icon appears in the system tray.
 
-Стартирай `HdmiToggle.exe` — появява се икона в системния трей.
+- **Left click** the icon or press **Ctrl+Alt+H** — turns the HDMI picture off/on.
+- **Right click** — menu:
+  - when turning on: extend the desktop (default) or duplicate the screen;
+  - start with Windows;
+  - exit.
 
-- **Ляв клик** върху иконата или **Ctrl+Alt+H** — спира/пуска картината към HDMI.
-- **Десен клик** — меню:
-  - при включване: разшири работния плот (по подразбиране) или дублирай екрана;
-  - стартирай с Windows;
-  - изход.
+The icon is a green monitor when HDMI is on, and a grey crossed-out one when it is off.
 
-Иконата е зелен монитор, когато HDMI е включен, и сив със зачертаване, когато е спрян.
-
-### Команден ред
+### Command line
 
 ```
-HdmiToggle.exe on       пуска картината
-HdmiToggle.exe off      спира картината
-HdmiToggle.exe toggle   превключва
-HdmiToggle.exe status   код на изход: 0 = включен, 1 = спрян, 2 = няма монитор
+HdmiToggle.exe on       turn the picture on
+HdmiToggle.exe off      turn the picture off
+HdmiToggle.exe toggle   switch
+HdmiToggle.exe status   exit code: 0 = on, 1 = off, 2 = no monitor
 ```
 
-## Особености
+## Notes
 
-- Ако няма HDMI монитор, но има друг външен (DisplayPort, USB-C док), приложението управлява него.
-- Ако HDMI е единственият активен екран, спирането прехвърля картината на вградения екран.
-- През Remote Desktop физическите екрани не се виждат и приложението отчита „няма свързан монитор".
+- With no HDMI monitor but another external one (DisplayPort, USB-C dock), the app controls that one.
+- If HDMI is the only active display, turning it off moves the picture to the built-in screen.
+- Over Remote Desktop the physical displays are not visible, so the app reports "no monitor connected".
 
-## Компилиране
+## Build
 
-Не са нужни допълнителни инсталации — ползва се C# компилаторът, вграден в Windows (.NET Framework 4.x):
+Nothing to install — it uses the C# compiler that ships with Windows (.NET Framework 4.x):
 
 ```
 build.cmd
 ```
 
-Приложението използва Windows API `QueryDisplayConfig` / `SetDisplayConfig`.
+The app uses the Windows `QueryDisplayConfig` / `SetDisplayConfig` APIs.

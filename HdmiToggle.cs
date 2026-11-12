@@ -1,8 +1,8 @@
-// HdmiToggle - малко приложение в системния трей, което спира и пуска
-// картината към външния HDMI изход на Windows 11.
+// HdmiToggle - a tiny system tray app that turns the picture to the
+// external HDMI output off and on (Windows 11).
 //
-// Компилиране: build.cmd  (ползва вградения в Windows csc.exe, без допълнителни инсталации)
-// Команден ред: HdmiToggle.exe on | off | toggle | status   (без аргумент -> икона в трея)
+// Build: build.cmd  (uses the csc.exe that ships with Windows, nothing to install)
+// Command line: HdmiToggle.exe on | off | toggle | status   (no argument -> tray icon)
 
 using System;
 using System.Drawing;
@@ -52,7 +52,7 @@ static class Display
         public uint flags;
     }
 
-    // 64 байта; съдържанието на union-а не ни трябва, само го връщаме обратно на Windows.
+    // 64 bytes; the union's contents are opaque to us, we only hand them back to Windows.
     [StructLayout(LayoutKind.Sequential)]
     struct ModeInfo
     {
@@ -91,7 +91,7 @@ static class Display
 
     static bool IsOtherExternal(uint tech)
     {
-        // VGA, DVI, външен DisplayPort, външен UDI, USB/докинг (indirect wired)
+        // VGA, DVI, external DisplayPort, external UDI, USB/dock (indirect wired)
         return tech == 0 || tech == 4 || tech == 10 || tech == 12 || tech == 16;
     }
 
@@ -117,8 +117,8 @@ static class Display
         return false;
     }
 
-    // Ако има свързан HDMI монитор, работим само с него. Ако няма HDMI,
-    // но има друг външен монитор (DisplayPort/USB-C док), работим с него.
+    // If an HDMI monitor is connected, only that one is controlled. With no HDMI
+    // but another external monitor (DisplayPort/USB-C dock), that one is used.
     static bool HdmiPresent(PathInfo[] all)
     {
         foreach (PathInfo p in all)
@@ -166,7 +166,7 @@ static class Display
             }
             else remaining++;
         }
-        if (changed == 0) return true; // вече е спрян
+        if (changed == 0) return true; // already off
 
         int r = -1;
         if (remaining > 0)
@@ -176,8 +176,7 @@ static class Display
         }
         if (r != 0)
         {
-            // Резервен вариант (или когато HDMI е единственият активен екран):
-            // "само екранът на компютъра".
+            // Fallback (or when HDMI is the only active display): "PC screen only".
             r = SetDisplayConfig(0, null, 0, null, SDC_APPLY | SDC_TOPOLOGY_INTERNAL);
         }
         return r == 0;
@@ -278,11 +277,11 @@ class TrayApp : ApplicationContext
         ContextMenuStrip menu = new ContextMenuStrip();
         miToggle = new ToolStripMenuItem("", null, delegate { Toggle(); });
         miToggle.Font = new Font(miToggle.Font, FontStyle.Bold);
-        miExtend = new ToolStripMenuItem("При включване: разшири работния плот", null,
+        miExtend = new ToolStripMenuItem("When turning on: extend the desktop", null,
             delegate { Settings.Clone = false; UpdateChecks(); });
-        miClone = new ToolStripMenuItem("При включване: дублирай екрана", null,
+        miClone = new ToolStripMenuItem("When turning on: duplicate the screen", null,
             delegate { Settings.Clone = true; UpdateChecks(); });
-        miAutostart = new ToolStripMenuItem("Стартирай с Windows", null,
+        miAutostart = new ToolStripMenuItem("Start with Windows", null,
             delegate { Settings.Autostart = !Settings.Autostart; UpdateChecks(); });
 
         menu.Items.Add(miToggle);
@@ -292,7 +291,7 @@ class TrayApp : ApplicationContext
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(miAutostart);
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add(new ToolStripMenuItem("Изход", null, delegate { ExitThread(); }));
+        menu.Items.Add(new ToolStripMenuItem("Exit", null, delegate { ExitThread(); }));
 
         tray.ContextMenuStrip = menu;
         tray.MouseClick += delegate(object s, MouseEventArgs e)
@@ -327,12 +326,12 @@ class TrayApp : ApplicationContext
         HdmiState s = Display.GetState();
         if (s == HdmiState.NotConnected)
         {
-            tray.ShowBalloonTip(3000, "HDMI", "Няма свързан външен монитор.", ToolTipIcon.Warning);
+            tray.ShowBalloonTip(3000, "HDMI", "No external monitor connected.", ToolTipIcon.Warning);
             return;
         }
         bool ok = s == HdmiState.On ? Display.TurnOff() : Display.TurnOn(Settings.Clone);
         if (!ok)
-            tray.ShowBalloonTip(3000, "HDMI", "Windows отказа смяната на екраните.", ToolTipIcon.Error);
+            tray.ShowBalloonTip(3000, "HDMI", "Windows refused the display change.", ToolTipIcon.Error);
         Refresh();
     }
 
@@ -345,20 +344,20 @@ class TrayApp : ApplicationContext
         string hk = hotkey.Registered ? " (Ctrl+Alt+H)" : "";
         if (s == HdmiState.On)
         {
-            tray.Text = "HDMI: включен" + hk;
-            miToggle.Text = "Спри картината към HDMI";
+            tray.Text = "HDMI: on" + hk;
+            miToggle.Text = "Turn HDMI off";
             miToggle.Enabled = true;
         }
         else if (s == HdmiState.Off)
         {
-            tray.Text = "HDMI: спрян" + hk;
-            miToggle.Text = "Пусни картината към HDMI";
+            tray.Text = "HDMI: off" + hk;
+            miToggle.Text = "Turn HDMI on";
             miToggle.Enabled = true;
         }
         else
         {
-            tray.Text = "HDMI: няма свързан монитор";
-            miToggle.Text = "Няма свързан монитор";
+            tray.Text = "HDMI: no monitor connected";
+            miToggle.Text = "No monitor connected";
             miToggle.Enabled = false;
         }
 
@@ -383,10 +382,10 @@ class TrayApp : ApplicationContext
             using (Brush frame = new SolidBrush(Color.FromArgb(235, 235, 235)))
             using (Brush fill = new SolidBrush(screen))
             {
-                g.FillRectangle(frame, 1, 4, 30, 20);   // рамка
-                g.FillRectangle(fill, 4, 7, 24, 14);    // екран
-                g.FillRectangle(frame, 14, 24, 4, 3);   // стойка
-                g.FillRectangle(frame, 8, 27, 16, 3);   // основа
+                g.FillRectangle(frame, 1, 4, 30, 20);   // bezel
+                g.FillRectangle(fill, 4, 7, 24, 14);    // screen
+                g.FillRectangle(frame, 14, 24, 4, 3);   // stand
+                g.FillRectangle(frame, 8, 27, 16, 3);   // base
             }
             if (s != HdmiState.On)
             {
@@ -425,10 +424,10 @@ static class Program
                     if (s == HdmiState.NotConnected) return 2;
                     return (s == HdmiState.On ? Display.TurnOff() : Display.TurnOn(Settings.Clone)) ? 0 : 1;
                 case "status":
-                    // код на изход: 0 = включен, 1 = спрян, 2 = няма монитор
+                    // exit code: 0 = on, 1 = off, 2 = no monitor
                     return s == HdmiState.On ? 0 : s == HdmiState.Off ? 1 : 2;
                 default:
-                    MessageBox.Show("Употреба: HdmiToggle.exe [on | off | toggle | status]", "HdmiToggle");
+                    MessageBox.Show("Usage: HdmiToggle.exe [on | off | toggle | status]", "HdmiToggle");
                     return 64;
             }
         }
@@ -436,7 +435,7 @@ static class Program
         bool created;
         using (Mutex mutex = new Mutex(true, "HdmiToggle.SingleInstance", out created))
         {
-            if (!created) return 0; // вече работи
+            if (!created) return 0; // already running
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new TrayApp());
